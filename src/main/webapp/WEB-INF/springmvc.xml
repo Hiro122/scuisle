@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <context:component-scan base-package="com.scuf4"></context:component-scan>
+
+    <mvc:annotation-driven></mvc:annotation-driven>
+
+
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+          p:prefix="/"  p:suffix=".jsp"
+    />
+
+
+    <!--配置数据源-->
+    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+        <property name="url" value="jdbc:mysql://localhost:3306/companydb?useUnicode=true&amp;characterEncoding=utf-8&amp;autoReconnect=true"></property>
+        <property name="username" value="root"></property>
+        <property name="password" value=""></property>
+        <!-- 初始化连接大小 -->
+        <property name="initialSize" value="0"></property>
+        <!-- 连接池最大数量 -->
+        <property name="maxTotal" value="20"></property>
+        <!-- 连接池最大空闲 -->
+        <property name="maxIdle" value="20"></property>
+        <!-- 连接池最小空闲 -->
+        <property name="minIdle" value="1"></property>
+        <!-- 获取连接最大等待时间 -->
+        <property name="maxWaitMillis" value="60000"></property>
+        <!--空闲时是否进行验证，检查对象是否有效，默认为false  -->
+        <property name="testWhileIdle" value="true"></property>
+        <!--失效检查线程运行时间间隔，如果小于等于0，不会启动检查线程，默认-1  -->
+        <property name="timeBetweenEvictionRunsMillis" value="3600000"></property>
+        <!--大于0 ，进行连接空闲时间判断，或为0，对空闲的连接不进行验证；默认30分钟  -->
+        <property name="minEvictableIdleTimeMillis" value="1800000"></property>
+        <!--取得对象时是否进行验证，检查对象是否有效，默认为false  -->
+        <property name="testOnBorrow" value="true"></property>
+    </bean>
+
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+        <!--配置类的别名-->
+        <property name="typeAliasesPackage" value="com.scuf4.pojo"></property>
+        <!--自动扫描mapper-->
+        <property name="mapperLocations" value="classpath*:com/scuf4/dao/*.xml"></property>
+
+    </bean>
+
+    <!--Dao接口所在包名，spring会自动查找并实例化-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+        <property name="basePackage" value="com.scuf4.dao"></property>
+    </bean>
+
+    <!--事务相关的配置-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+    <!--支持事务注解-->
+    <tx:annotation-driven transaction-manager="transactionManager"></tx:annotation-driven>
+
+    <!--文件上传解析-->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize">
+            <value>5242880</value>
+        </property>
+    </bean>
+</beans>
